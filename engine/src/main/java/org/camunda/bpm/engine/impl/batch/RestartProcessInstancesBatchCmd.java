@@ -31,7 +31,7 @@ import org.camunda.bpm.engine.batch.Batch;
 import org.camunda.bpm.engine.impl.ProcessEngineLogger;
 import org.camunda.bpm.engine.impl.RestartProcessInstanceBuilderImpl;
 import org.camunda.bpm.engine.impl.RestartProcessInstancesBatchConfiguration;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.cmd.AbstractProcessInstanceModificationCommand;
 import org.camunda.bpm.engine.impl.cmd.AbstractRestartProcessInstanceCmd;
@@ -94,7 +94,7 @@ public class RestartProcessInstancesBatchCmd extends AbstractRestartProcessInsta
   public BatchConfiguration getConfiguration(Collection<String> instanceIds, String deploymentId) {
     return new RestartProcessInstancesBatchConfiguration(
         new ArrayList<>(instanceIds),
-        Arrays.asList(new DeploymentMappingInfo(deploymentId, instanceIds.size())),
+        Arrays.asList(new DeploymentMapping(deploymentId, instanceIds.size())),
         builder.getInstructions(),
         builder.getProcessDefinitionId(),
         builder.isInitialVariables(),

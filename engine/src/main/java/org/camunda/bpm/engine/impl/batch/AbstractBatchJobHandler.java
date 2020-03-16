@@ -16,7 +16,7 @@
  */
 package org.camunda.bpm.engine.impl.batch;
 
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.db.DbEntity;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
@@ -54,13 +54,13 @@ public abstract class AbstractBatchJobHandler<T extends BatchConfiguration> impl
   protected boolean doCreateJobs(BatchEntity batch, T configuration) {
     String deploymentId = null;
 
-    List<DeploymentMappingInfo> idMappings = configuration.getIdMappings();
+    List<DeploymentMapping> idMappings = configuration.getIdMappings();
     boolean deploymentAware = idMappings != null && !idMappings.isEmpty();
 
     List<String> ids = configuration.getIds();
 
     if (deploymentAware) {
-      DeploymentMappingInfo mappingToProcess = idMappings.get(0);
+      DeploymentMapping mappingToProcess = idMappings.get(0);
       ids = mappingToProcess.getIds(ids);
       deploymentId = mappingToProcess.getDeploymentId();
     }

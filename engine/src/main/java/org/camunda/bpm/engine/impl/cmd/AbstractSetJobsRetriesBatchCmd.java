@@ -30,7 +30,7 @@ import org.camunda.bpm.engine.authorization.BatchPermissions;
 import org.camunda.bpm.engine.batch.Batch;
 import org.camunda.bpm.engine.history.UserOperationLogEntry;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.batch.SetRetriesBatchConfiguration;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.db.DbEntity;
@@ -50,9 +50,9 @@ public abstract class AbstractSetJobsRetriesBatchCmd implements Command<Batch> {
   @Override
   public Batch execute(CommandContext commandContext) {
     List<String> collectedJobIds = collectJobIds(commandContext);
-    List<DeploymentMappingInfo> mappings = groupByDeploymentId(collectedJobIds, commandContext.getJobManager()::findJobById, JobEntity::getDeploymentId, JobEntity::getId)
+    List<DeploymentMapping> mappings = groupByDeploymentId(collectedJobIds, commandContext.getJobManager()::findJobById, JobEntity::getDeploymentId, JobEntity::getId)
       .entrySet().stream()
-      .map(e -> new DeploymentMappingInfo(e.getKey(), e.getValue().size()))
+      .map(e -> new DeploymentMapping(e.getKey(), e.getValue().size()))
       .collect(Collectors.toList());
 
     ensureNotEmpty(BadUserRequestException.class, "jobIds", collectedJobIds);
@@ -71,7 +71,7 @@ public abstract class AbstractSetJobsRetriesBatchCmd implements Command<Batch> {
     Function<String, String> deploymentIdFunctionNullSafe = id -> {
       S entity = idMapperFunction.apply(id);
       if (entity == null || deploymentIdFunction.apply(entity) == null) {
-        return DeploymentMappingInfo.NULL_ID;
+        return DeploymentMapping.NULL_ID;
       }
       return deploymentIdFunction.apply(entity);
     };
@@ -101,7 +101,7 @@ public abstract class AbstractSetJobsRetriesBatchCmd implements Command<Batch> {
 
   protected abstract List<String> collectJobIds(CommandContext commandContext);
 
-  public BatchConfiguration getConfiguration(Collection<String> instanceIds, List<DeploymentMappingInfo> mappings) {
+  public BatchConfiguration getConfiguration(Collection<String> instanceIds, List<DeploymentMapping> mappings) {
     return new SetRetriesBatchConfiguration(new ArrayList<>(instanceIds), mappings, retries);
   }
 

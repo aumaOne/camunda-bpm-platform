@@ -35,7 +35,7 @@ public class RestartProcessInstancesBatchConfiguration extends BatchConfiguratio
   protected boolean skipIoMappings;
   protected boolean withoutBusinessKey;
 
-  public RestartProcessInstancesBatchConfiguration(List<String> processInstanceIds, List<DeploymentMappingInfo> mappings,
+  public RestartProcessInstancesBatchConfiguration(List<String> processInstanceIds, List<DeploymentMapping> mappings,
       List<AbstractProcessInstanceModificationCommand> instructions, String processDefinitionId,
       boolean initialVariables, boolean skipCustomListeners, boolean skipIoMappings, boolean withoutBusinessKey) {
     super(processInstanceIds, mappings);

@@ -21,7 +21,7 @@ import org.camunda.bpm.engine.authorization.BatchPermissions;
 import org.camunda.bpm.engine.batch.Batch;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.batch.SetRetriesBatchConfiguration;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 
@@ -39,7 +39,7 @@ public class SetExternalTasksRetriesBatchCmd extends AbstractSetExternalTaskRetr
 
   @Override
   public Batch execute(CommandContext commandContext) {
-    List<DeploymentMappingInfo> mappings = new ArrayList<>();
+    List<DeploymentMapping> mappings = new ArrayList<>();
     Collection<String> collectedInstanceIds = collectExternalTaskIds(mappings);
 
     ensureNotEmpty(BadUserRequestException.class, "externalTaskIds",
@@ -53,7 +53,7 @@ public class SetExternalTasksRetriesBatchCmd extends AbstractSetExternalTaskRetr
         .build();
   }
 
-  public BatchConfiguration getConfiguration(Collection<String> instanceIds, List<DeploymentMappingInfo> mappings) {
+  public BatchConfiguration getConfiguration(Collection<String> instanceIds, List<DeploymentMapping> mappings) {
     return new SetRetriesBatchConfiguration(new ArrayList<>(instanceIds), mappings, builder.getRetries());
   }
 

@@ -28,7 +28,7 @@ import org.camunda.bpm.engine.impl.ProcessEngineLogger;
 import org.camunda.bpm.engine.impl.ProcessInstanceModificationBuilderImpl;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -98,7 +98,7 @@ public class ModifyProcessInstanceAsyncCmd implements Command<Batch> {
   public BatchConfiguration getConfiguration(String processDefinitionId, String deploymentId) {
     return new ModificationBatchConfiguration(
         Collections.singletonList(builder.getProcessInstanceId()),
-        Arrays.asList(new DeploymentMappingInfo(deploymentId, 1)),
+        Arrays.asList(new DeploymentMapping(deploymentId, 1)),
         processDefinitionId,
         builder.getModificationOperations(),
         builder.isSkipCustomListeners(),

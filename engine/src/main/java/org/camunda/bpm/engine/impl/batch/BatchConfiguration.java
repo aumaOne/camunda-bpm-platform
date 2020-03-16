@@ -16,16 +16,21 @@
  */
 package org.camunda.bpm.engine.impl.batch;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.SortedSet;
 import java.util.StringJoiner;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import org.camunda.bpm.engine.impl.util.ComparablePair;
 
 
 public class BatchConfiguration {
 
   protected List<String> ids;
-  protected List<DeploymentMappingInfo> idMappings;
+  protected List<DeploymentMapping> idMappings;
   protected boolean failIfNotExists;
 
   public BatchConfiguration(List<String> ids) {
@@ -36,11 +41,11 @@ public class BatchConfiguration {
     this(ids, null, failIfNotExists);
   }
 
-  public BatchConfiguration(List<String> ids, List<DeploymentMappingInfo> mappings) {
+  public BatchConfiguration(List<String> ids, List<DeploymentMapping> mappings) {
     this(ids, mappings, true);
   }
 
-  public BatchConfiguration(List<String> ids, List<DeploymentMappingInfo> mappings, boolean failIfNotExists) {
+  public BatchConfiguration(List<String> ids, List<DeploymentMapping> mappings, boolean failIfNotExists) {
     this.ids = ids;
     this.idMappings = mappings;
     this.failIfNotExists = failIfNotExists;
@@ -54,11 +59,11 @@ public class BatchConfiguration {
     this.ids = ids;
   }
 
-  public List<DeploymentMappingInfo> getIdMappings() {
+  public List<DeploymentMapping> getIdMappings() {
     return idMappings;
   }
 
-  public void setIdMappings(List<DeploymentMappingInfo> idMappings) {
+  public void setIdMappings(List<DeploymentMapping> idMappings) {
     this.idMappings = idMappings;
   }
 
@@ -70,13 +75,65 @@ public class BatchConfiguration {
     this.failIfNotExists = failIfNotExists;
   }
 
-  public static class DeploymentMappingInfo {
+  public static class BatchElementConfiguration {
+    private SortedSet<ComparablePair<String, String>> collectedMappings = new TreeSet<>();
+
+    private List<String> ids;
+    private List<DeploymentMapping> mappings;
+
+    public void addDeploymentMappings(List<ComparablePair<String, String>> mappings) {
+      this.collectedMappings.addAll(mappings);
+    }
+
+    public List<String> getIds() {
+      if (ids == null) {
+        createDeploymentMappings();
+      }
+      return ids;
+    }
+
+    public List<DeploymentMapping> getMappings() {
+      if (mappings == null) {
+        createDeploymentMappings();
+      }
+      return mappings;
+    }
+
+    public boolean isEmpty() {
+      return collectedMappings.isEmpty();
+    }
+
+    private void createDeploymentMappings() {
+      ids = new ArrayList<>();
+      mappings = new ArrayList<>();
+
+      String deploymentId = null;
+      int count = 0;
+      for (ComparablePair<String,String> pair : collectedMappings) {
+        ids.add(pair.getRight());
+        if (Objects.equals(pair.getLeft(), deploymentId)) {
+          count++;
+        } else {
+          if (count > 0) {
+            mappings.add(new DeploymentMapping(deploymentId, count));
+          }
+          count = 1;
+          deploymentId = pair.getLeft();
+        }
+      }
+      if (count > 0) {
+        mappings.add(new DeploymentMapping(deploymentId, count));
+      }
+    }
+  }
+
+  public static class DeploymentMapping {
     public static String NULL_ID = "$NULL";
 
     private String deploymentId;
     private int count;
 
-    public DeploymentMappingInfo(String deploymentId, int count) {
+    public DeploymentMapping(String deploymentId, int count) {
       this.deploymentId = deploymentId == null ? NULL_ID : deploymentId;
       this.count = count;
     }
@@ -105,25 +162,20 @@ public class BatchConfiguration {
           .toString();
     }
 
-    public static List<String> toStringList(List<DeploymentMappingInfo> infoList) {
-      return infoList == null ? null : infoList.stream().map(DeploymentMappingInfo::toString).collect(Collectors.toList());
+    public static List<String> toStringList(List<DeploymentMapping> infoList) {
+      return infoList == null ? null : infoList.stream().map(DeploymentMapping::toString).collect(Collectors.toList());
     }
 
-    public static List<DeploymentMappingInfo> fromStringList(List<String> infoList) {
-      return infoList.stream().map(DeploymentMappingInfo::fromString).collect(Collectors.toList());
+    public static List<DeploymentMapping> fromStringList(List<String> infoList) {
+      return infoList.stream().map(DeploymentMapping::fromString).collect(Collectors.toList());
     }
 
-    public static DeploymentMappingInfo fromString(String info) {
+    public static DeploymentMapping fromString(String info) {
       String[] parts = info.split(";");
       if (parts.length != 2) {
         throw new IllegalArgumentException("DeploymentMappingInfo must consist of two parts separated by semi-colons, but was: " + info);
       }
-      return new DeploymentMappingInfo(parts[0], Integer.valueOf(parts[1]));
-    }
-
-    public static void addIds(Collection<String> idsToAdd, List<String> targetIdList, List<DeploymentMappingInfo> mappings, String deploymentId) {
-      targetIdList.addAll(idsToAdd);
-      mappings.add(new DeploymentMappingInfo(deploymentId, idsToAdd.size()));
+      return new DeploymentMapping(parts[0], Integer.valueOf(parts[1]));
     }
   }
 

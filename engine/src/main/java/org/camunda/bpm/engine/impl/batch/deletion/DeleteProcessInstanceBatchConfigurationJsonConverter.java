@@ -17,7 +17,7 @@
 package org.camunda.bpm.engine.impl.batch.deletion;
 
 import java.util.List;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.json.JsonObjectConverter;
 import org.camunda.bpm.engine.impl.util.JsonUtil;
 
@@ -42,7 +42,7 @@ public class DeleteProcessInstanceBatchConfigurationJsonConverter extends JsonOb
     JsonObject json = JsonUtil.createObject();
 
     JsonUtil.addField(json, DELETE_REASON, configuration.getDeleteReason());
-    JsonUtil.addListField(json, PROCESS_INSTANCE_ID_MAPPINGS, DeploymentMappingInfo.toStringList(configuration.getIdMappings()));
+    JsonUtil.addListField(json, PROCESS_INSTANCE_ID_MAPPINGS, DeploymentMapping.toStringList(configuration.getIdMappings()));
     JsonUtil.addListField(json, PROCESS_INSTANCE_IDS, configuration.getIds());
     JsonUtil.addField(json, SKIP_CUSTOM_LISTENERS, configuration.isSkipCustomListeners());
     JsonUtil.addField(json, SKIP_SUBPROCESSES, configuration.isSkipSubprocesses());
@@ -70,7 +70,7 @@ public class DeleteProcessInstanceBatchConfigurationJsonConverter extends JsonOb
     return JsonUtil.asStringList(JsonUtil.getArray(jsonObject, PROCESS_INSTANCE_IDS));
   }
 
-  protected List<DeploymentMappingInfo> readIdMappings(JsonObject json) {
-    return DeploymentMappingInfo.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(json, PROCESS_INSTANCE_ID_MAPPINGS)));
+  protected List<DeploymentMapping> readIdMappings(JsonObject json) {
+    return DeploymentMapping.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(json, PROCESS_INSTANCE_ID_MAPPINGS)));
   }
 }

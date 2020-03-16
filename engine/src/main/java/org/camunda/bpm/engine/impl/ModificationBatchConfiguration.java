@@ -28,7 +28,7 @@ public class ModificationBatchConfiguration extends BatchConfiguration {
   protected boolean skipIoMappings;
   protected String processDefinitionId;
 
-  public ModificationBatchConfiguration(List<String> ids, List<DeploymentMappingInfo> mappings,
+  public ModificationBatchConfiguration(List<String> ids, List<DeploymentMapping> mappings,
       String processDefinitionId, List<AbstractProcessInstanceModificationCommand> instructions,
       boolean skipCustomListeners, boolean skipIoMappings) {
     super(ids, mappings);

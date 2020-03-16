@@ -32,7 +32,7 @@ public class MigrationBatchConfiguration extends BatchConfiguration {
   }
 
   public MigrationBatchConfiguration(List<String> ids,
-                                     List<DeploymentMappingInfo> mappings,
+                                     List<DeploymentMapping> mappings,
                                      MigrationPlan migrationPlan,
                                      boolean isSkipCustomListeners,
                                      boolean isSkipIoMappings) {

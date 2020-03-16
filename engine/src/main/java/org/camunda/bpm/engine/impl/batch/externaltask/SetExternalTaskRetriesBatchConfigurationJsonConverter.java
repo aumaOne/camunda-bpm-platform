@@ -18,7 +18,7 @@ package org.camunda.bpm.engine.impl.batch.externaltask;
 
 import java.util.List;
 
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.batch.SetRetriesBatchConfiguration;
 import org.camunda.bpm.engine.impl.json.JsonObjectConverter;
 import org.camunda.bpm.engine.impl.util.JsonUtil;
@@ -37,7 +37,7 @@ public class SetExternalTaskRetriesBatchConfigurationJsonConverter extends JsonO
     JsonObject json = JsonUtil.createObject();
 
     JsonUtil.addListField(json, EXTERNAL_TASK_IDS, configuration.getIds());
-    JsonUtil.addListField(json, EXTERNAL_TASK_ID_MAPPINGS, DeploymentMappingInfo.toStringList(configuration.getIdMappings()));
+    JsonUtil.addListField(json, EXTERNAL_TASK_ID_MAPPINGS, DeploymentMapping.toStringList(configuration.getIdMappings()));
     JsonUtil.addField(json, RETRIES, configuration.getRetries());
 
     return json;
@@ -52,7 +52,7 @@ public class SetExternalTaskRetriesBatchConfigurationJsonConverter extends JsonO
     return JsonUtil.asStringList(JsonUtil.getArray(json, EXTERNAL_TASK_IDS));
   }
 
-  protected List<DeploymentMappingInfo> readIdMappings(JsonObject json) {
-    return DeploymentMappingInfo.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(json, EXTERNAL_TASK_ID_MAPPINGS)));
+  protected List<DeploymentMapping> readIdMappings(JsonObject json) {
+    return DeploymentMapping.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(json, EXTERNAL_TASK_ID_MAPPINGS)));
   }
 }

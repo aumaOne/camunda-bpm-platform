@@ -32,7 +32,7 @@ import org.camunda.bpm.engine.impl.ModificationBatchConfiguration;
 import org.camunda.bpm.engine.impl.ModificationBuilderImpl;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 
@@ -78,7 +78,7 @@ public class ProcessInstanceModificationBatchCmd extends AbstractModificationCmd
 
   public BatchConfiguration getConfiguration(Collection<String> instanceIds, String deploymentId) {
     return new ModificationBatchConfiguration(new ArrayList<>(instanceIds),
-        Arrays.asList(new DeploymentMappingInfo(deploymentId, instanceIds.size())),
+        Arrays.asList(new DeploymentMapping(deploymentId, instanceIds.size())),
         builder.getProcessDefinitionId(),
         builder.getInstructions(),
         builder.isSkipCustomListeners(),

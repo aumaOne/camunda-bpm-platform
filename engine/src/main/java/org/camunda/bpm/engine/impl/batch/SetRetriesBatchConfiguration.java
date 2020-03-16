@@ -22,7 +22,7 @@ public class SetRetriesBatchConfiguration extends BatchConfiguration {
 
   protected int retries;
 
-  public SetRetriesBatchConfiguration(List<String> ids, List<DeploymentMappingInfo> mappings, int retries) {
+  public SetRetriesBatchConfiguration(List<String> ids, List<DeploymentMapping> mappings, int retries) {
     super(ids, mappings);
     this.retries = retries;
   }

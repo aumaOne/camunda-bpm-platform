@@ -20,10 +20,8 @@ import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.camunda.bpm.engine.BadUserRequestException;
 import org.camunda.bpm.engine.authorization.BatchPermissions;
 import org.camunda.bpm.engine.batch.Batch;
@@ -32,7 +30,7 @@ import org.camunda.bpm.engine.history.UserOperationLogEntry;
 import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.BatchElementConfiguration;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.batch.deletion.DeleteProcessInstanceBatchConfiguration;
 import org.camunda.bpm.engine.impl.interceptor.Command;
@@ -69,59 +67,39 @@ public class DeleteProcessInstanceBatchCmd implements Command<Batch> {
 
   @Override
   public Batch execute(CommandContext commandContext) {
-    List<DeploymentMappingInfo> mappings = new ArrayList<>();
-    List<String> collectedInstanceIds = collectProcessInstanceIds(commandContext, mappings);
+    BatchElementConfiguration elementConfiguration = collectProcessInstanceIds();
 
-    ensureNotEmpty(BadUserRequestException.class, "processInstanceIds", collectedInstanceIds);
+    ensureNotEmpty(BadUserRequestException.class, "processInstanceIds", elementConfiguration.getIds());
 
     return new BatchBuilder(commandContext)
         .type(Batch.TYPE_PROCESS_INSTANCE_DELETION)
-        .config(getConfiguration(collectedInstanceIds, mappings))
+        .config(getConfiguration(elementConfiguration))
         .permission(BatchPermissions.CREATE_BATCH_DELETE_RUNNING_PROCESS_INSTANCES)
         .operationLogHandler(this::writeUserOperationLog)
         .build();
   }
 
-  protected List<String> collectProcessInstanceIds(CommandContext commandContext, List<DeploymentMappingInfo> mappings) {
-
-    Set<String> collectedProcessInstanceIds = new HashSet<>();
+  protected BatchElementConfiguration collectProcessInstanceIds() {
+    BatchElementConfiguration elementConfiguration = new BatchElementConfiguration();
 
     List<String> processInstanceIds = this.getProcessInstanceIds();
-    if (processInstanceIds != null) {
-      collectedProcessInstanceIds.addAll(processInstanceIds);
+    if (processInstanceIds != null && !processInstanceIds.isEmpty()) {
+      ProcessInstanceQueryImpl query = new ProcessInstanceQueryImpl();
+      query.processInstanceIds(new HashSet<>(processInstanceIds));
+      elementConfiguration.addDeploymentMappings(query.listDeploymentIdMappings());
     }
 
-    final ProcessInstanceQueryImpl processInstanceQuery = (ProcessInstanceQueryImpl) this.processInstanceQuery;
+    ProcessInstanceQueryImpl processInstanceQuery = (ProcessInstanceQueryImpl) this.processInstanceQuery;
     if (processInstanceQuery != null) {
-      collectedProcessInstanceIds.addAll(processInstanceQuery.listIds());
+      elementConfiguration.addDeploymentMappings(processInstanceQuery.listDeploymentIdMappings());
     }
 
-    final HistoricProcessInstanceQueryImpl historicProcessInstanceQuery =
-        (HistoricProcessInstanceQueryImpl) this.historicProcessInstanceQuery;
+    HistoricProcessInstanceQueryImpl historicProcessInstanceQuery = (HistoricProcessInstanceQueryImpl) this.historicProcessInstanceQuery;
     if (historicProcessInstanceQuery != null) {
-      collectedProcessInstanceIds.addAll(historicProcessInstanceQuery.listIds());
+      elementConfiguration.addDeploymentMappings(historicProcessInstanceQuery.listDeploymentIdMappings());
     }
 
-    if (collectedProcessInstanceIds.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    List<String> ids = new ArrayList<>();
-    createDeploymentMappings(commandContext, mappings, collectedProcessInstanceIds, ids);
-
-    return ids;
-  }
-
-  public static void createDeploymentMappings(CommandContext commandContext, List<DeploymentMappingInfo> mappings, Collection<String> sourceIds, List<String> targetIds) {
-    commandContext.getDeploymentManager().findDeploymentIdsByProcessInstances(new ArrayList<>(sourceIds))
-      .forEach(id -> {
-        DeploymentMappingInfo.addIds(getInstancesForDeploymentId(commandContext, sourceIds, id),
-            targetIds, mappings, id);
-      });
-    sourceIds.removeAll(targetIds);
-    if (!sourceIds.isEmpty()) {
-      DeploymentMappingInfo.addIds(sourceIds, targetIds, mappings, null);
-    }
+    return elementConfiguration;
   }
 
   protected static List<String> getInstancesForDeploymentId(CommandContext commandContext, Collection<String> processIds, String deploymentId) {
@@ -149,9 +127,9 @@ public class DeleteProcessInstanceBatchCmd implements Command<Batch> {
             propertyChanges);
   }
 
-  public BatchConfiguration getConfiguration(List<String> collectedInstanceIds, List<DeploymentMappingInfo> mappings) {
-    return new DeleteProcessInstanceBatchConfiguration(collectedInstanceIds, mappings, deleteReason,
-        skipCustomListeners, skipSubprocesses, false);
+  public BatchConfiguration getConfiguration(BatchElementConfiguration elementConfiguration) {
+    return new DeleteProcessInstanceBatchConfiguration(elementConfiguration.getIds(), elementConfiguration.getMappings(),
+        deleteReason, skipCustomListeners, skipSubprocesses, false);
   }
 
 }

@@ -18,7 +18,7 @@ package org.camunda.bpm.engine.impl;
 
 import java.util.List;
 
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.cmd.AbstractProcessInstanceModificationCommand;
 import org.camunda.bpm.engine.impl.json.JsonObjectConverter;
 import org.camunda.bpm.engine.impl.json.ModificationCmdJsonConverter;
@@ -43,7 +43,7 @@ public class RestartProcessInstancesBatchConfigurationJsonConverter extends Json
     JsonObject json = JsonUtil.createObject();
 
     JsonUtil.addListField(json, PROCESS_INSTANCE_IDS, configuration.getIds());
-    JsonUtil.addListField(json, PROCESS_INSTANCE_ID_MAPPINGS, DeploymentMappingInfo.toStringList(configuration.getIdMappings()));
+    JsonUtil.addListField(json, PROCESS_INSTANCE_ID_MAPPINGS, DeploymentMapping.toStringList(configuration.getIdMappings()));
     JsonUtil.addField(json, PROCESS_DEFINITION_ID, configuration.getProcessDefinitionId());
     JsonUtil.addListField(json, INSTRUCTIONS, ModificationCmdJsonConverter.INSTANCE, configuration.getInstructions());
     JsonUtil.addField(json, INITIAL_VARIABLES, configuration.isInitialVariables());
@@ -57,7 +57,7 @@ public class RestartProcessInstancesBatchConfigurationJsonConverter extends Json
   @Override
   public RestartProcessInstancesBatchConfiguration toObject(JsonObject json) {
     List<String> processInstanceIds = readProcessInstanceIds(json);
-    List<DeploymentMappingInfo> idMappings = readIdMappings(json);
+    List<DeploymentMapping> idMappings = readIdMappings(json);
     List<AbstractProcessInstanceModificationCommand> instructions = JsonUtil.asList(JsonUtil.getArray(json, INSTRUCTIONS), ModificationCmdJsonConverter.INSTANCE);
 
     return new RestartProcessInstancesBatchConfiguration(processInstanceIds, idMappings, instructions,
@@ -70,7 +70,7 @@ public class RestartProcessInstancesBatchConfigurationJsonConverter extends Json
     return JsonUtil.asStringList(JsonUtil.getArray(jsonObject, PROCESS_INSTANCE_IDS));
   }
 
-  protected List<DeploymentMappingInfo> readIdMappings(JsonObject jsonObject) {
-    return DeploymentMappingInfo.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(jsonObject, PROCESS_INSTANCE_ID_MAPPINGS)));
+  protected List<DeploymentMapping> readIdMappings(JsonObject jsonObject) {
+    return DeploymentMapping.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(jsonObject, PROCESS_INSTANCE_ID_MAPPINGS)));
   }
 }

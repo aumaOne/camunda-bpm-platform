@@ -16,7 +16,7 @@
  */
 package org.camunda.bpm.engine.impl.batch.job;
 
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.batch.SetRetriesBatchConfiguration;
 import org.camunda.bpm.engine.impl.json.JsonObjectConverter;
 import org.camunda.bpm.engine.impl.util.JsonUtil;
@@ -38,7 +38,7 @@ public class SetJobRetriesBatchConfigurationJsonConverter extends JsonObjectConv
     JsonObject json = JsonUtil.createObject();
 
     JsonUtil.addListField(json, JOB_IDS, configuration.getIds());
-    JsonUtil.addListField(json, JOB_ID_MAPPINGS, DeploymentMappingInfo.toStringList(configuration.getIdMappings()));
+    JsonUtil.addListField(json, JOB_ID_MAPPINGS, DeploymentMapping.toStringList(configuration.getIdMappings()));
     JsonUtil.addField(json, RETRIES, configuration.getRetries());
     return json;
   }
@@ -56,7 +56,7 @@ public class SetJobRetriesBatchConfigurationJsonConverter extends JsonObjectConv
     return JsonUtil.asStringList(JsonUtil.getArray(jsonObject, JOB_IDS));
   }
 
-  protected List<DeploymentMappingInfo> readIdMappings(JsonObject jsonObject) {
-    return DeploymentMappingInfo.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(jsonObject, JOB_ID_MAPPINGS)));
+  protected List<DeploymentMapping> readIdMappings(JsonObject jsonObject) {
+    return DeploymentMapping.fromStringList(JsonUtil.asStringList(JsonUtil.getArray(jsonObject, JOB_ID_MAPPINGS)));
   }
 }

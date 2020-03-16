@@ -34,7 +34,7 @@ import org.camunda.bpm.engine.history.UserOperationLogEntry;
 import org.camunda.bpm.engine.impl.ExternalTaskQueryImpl;
 import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.ProcessInstanceQueryImpl;
-import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMappingInfo;
+import org.camunda.bpm.engine.impl.batch.BatchConfiguration.DeploymentMapping;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.db.DbEntity;
 import org.camunda.bpm.engine.impl.interceptor.Command;
@@ -72,7 +72,7 @@ public abstract class AbstractSetExternalTaskRetriesCmd<T> implements Command<T>
     return new ArrayList<>(collectedProcessInstanceIds);
   }
 
-  protected List<String> collectExternalTaskIds(List<DeploymentMappingInfo> mappings) {
+  protected List<String> collectExternalTaskIds(List<DeploymentMapping> mappings) {
 
     final Set<String> collectedIds = new HashSet<>();
 
@@ -103,7 +103,7 @@ public abstract class AbstractSetExternalTaskRetriesCmd<T> implements Command<T>
     if (mappings != null) {
       groupByDeploymentId(ids, commandContext.getExternalTaskManager()::findExternalTaskById, e -> getDeploymentId(commandContext, e), ExternalTaskEntity::getId)
         .entrySet().stream()
-        .map(e -> new DeploymentMappingInfo(e.getKey(), e.getValue().size()))
+        .map(e -> new DeploymentMapping(e.getKey(), e.getValue().size()))
         .forEach(mappings::add);
     }
 

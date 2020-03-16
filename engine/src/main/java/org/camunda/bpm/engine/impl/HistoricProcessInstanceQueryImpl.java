@@ -36,6 +36,7 @@ import org.camunda.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.interceptor.CommandExecutor;
+import org.camunda.bpm.engine.impl.util.ComparablePair;
 import org.camunda.bpm.engine.impl.util.CompareUtil;
 import org.camunda.bpm.engine.impl.variable.serializer.VariableSerializers;
 
@@ -388,6 +389,15 @@ public class HistoricProcessInstanceQueryImpl extends AbstractVariableQueryImpl<
     return commandContext
         .getHistoricProcessInstanceManager()
         .findHistoricProcessInstanceIds(this);
+  }
+
+  @Override
+  public List<ComparablePair<String, String>> executeDeploymentIdMappingsList(CommandContext commandContext) {
+    checkQueryOk();
+    ensureVariablesInitialized();
+    return commandContext
+        .getHistoricProcessInstanceManager()
+        .findDeploymentIdMappingsByQueryCriteria(this);
   }
 
   @Override
