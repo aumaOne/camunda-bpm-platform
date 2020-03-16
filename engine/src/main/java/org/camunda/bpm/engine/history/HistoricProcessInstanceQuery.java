@@ -81,9 +81,6 @@ public interface HistoricProcessInstanceQuery extends Query<HistoricProcessInsta
    */
   HistoricProcessInstanceQuery processInstanceBusinessKeyLike(String processInstanceBusinessKeyLike);
 
-  /** Only select historic process instances which belong to the given deployment id. */
-  HistoricProcessInstanceQuery deploymentId(String deploymentId);
-
   /** Only select historic process instances that are completely finished. */
   HistoricProcessInstanceQuery finished();
 

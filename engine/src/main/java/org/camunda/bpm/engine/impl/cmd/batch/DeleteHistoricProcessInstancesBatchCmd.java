@@ -19,7 +19,6 @@ package org.camunda.bpm.engine.impl.cmd.batch;
 import static org.camunda.bpm.engine.impl.util.EnsureUtil.ensureNotEmpty;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import org.camunda.bpm.engine.BadUserRequestException;
@@ -83,12 +82,6 @@ public class DeleteHistoricProcessInstancesBatchCmd implements Command<Batch> {
     }
 
     return elementConfiguration;
-  }
-
-  protected List<String> getInstancesForDeploymentId(CommandContext commandContext, Collection<String> processIds, String deploymentId) {
-    HistoricProcessInstanceQueryImpl instancesQuery = new HistoricProcessInstanceQueryImpl();
-    instancesQuery.processInstanceIds(new HashSet<>(processIds)).deploymentId(deploymentId);
-    return commandContext.getHistoricProcessInstanceManager().findHistoricProcessInstanceIds(instancesQuery);
   }
 
   public List<String> getHistoricProcessInstanceIds() {
