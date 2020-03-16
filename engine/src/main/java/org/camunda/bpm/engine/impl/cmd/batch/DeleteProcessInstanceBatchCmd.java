@@ -33,6 +33,7 @@ import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration.BatchElementConfiguration;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.camunda.bpm.engine.impl.batch.deletion.DeleteProcessInstanceBatchConfiguration;
+import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.PropertyChange;
@@ -84,9 +85,14 @@ public class DeleteProcessInstanceBatchCmd implements Command<Batch> {
 
     List<String> processInstanceIds = this.getProcessInstanceIds();
     if (processInstanceIds != null && !processInstanceIds.isEmpty()) {
-      ProcessInstanceQueryImpl query = new ProcessInstanceQueryImpl();
-      query.processInstanceIds(new HashSet<>(processInstanceIds));
-      elementConfiguration.addDeploymentMappings(query.listDeploymentIdMappings());
+      // TODO do we really want to do this? we practically did this previously
+      // because we ran the queries without authorization in the batch handlers
+      Context.getCommandContext().runWithoutAuthorization(() -> {
+        ProcessInstanceQueryImpl query = new ProcessInstanceQueryImpl();
+        query.processInstanceIds(new HashSet<>(processInstanceIds));
+        elementConfiguration.addDeploymentMappings(query.listDeploymentIdMappings());
+        return null;
+      });
     }
 
     ProcessInstanceQueryImpl processInstanceQuery = (ProcessInstanceQueryImpl) this.processInstanceQuery;

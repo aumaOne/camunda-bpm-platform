@@ -30,6 +30,7 @@ import org.camunda.bpm.engine.impl.HistoricProcessInstanceQueryImpl;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration;
 import org.camunda.bpm.engine.impl.batch.BatchConfiguration.BatchElementConfiguration;
 import org.camunda.bpm.engine.impl.batch.builder.BatchBuilder;
+import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.interceptor.Command;
 import org.camunda.bpm.engine.impl.interceptor.CommandContext;
 import org.camunda.bpm.engine.impl.persistence.entity.PropertyChange;
@@ -71,9 +72,14 @@ public class DeleteHistoricProcessInstancesBatchCmd implements Command<Batch> {
 
     List<String> processInstanceIds = this.getHistoricProcessInstanceIds();
     if (processInstanceIds != null) {
-      HistoricProcessInstanceQueryImpl query = new HistoricProcessInstanceQueryImpl();
-      query.processInstanceIds(new HashSet<>(processInstanceIds));
-      elementConfiguration.addDeploymentMappings(query.listDeploymentIdMappings());
+      // TODO do we really want to do this? we practically did this previously
+      // because we ran the queries without authorization in the batch handlers
+      Context.getCommandContext().runWithoutAuthorization(() -> {
+        HistoricProcessInstanceQueryImpl query = new HistoricProcessInstanceQueryImpl();
+        query.processInstanceIds(new HashSet<>(processInstanceIds));
+        elementConfiguration.addDeploymentMappings(query.listDeploymentIdMappings());
+        return null;
+      });
     }
 
     HistoricProcessInstanceQueryImpl processInstanceQuery = (HistoricProcessInstanceQueryImpl) this.historicProcessInstanceQuery;
