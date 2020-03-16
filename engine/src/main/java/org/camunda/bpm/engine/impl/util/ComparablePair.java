@@ -18,6 +18,7 @@ package org.camunda.bpm.engine.impl.util;
 
 import java.io.Serializable;
 import java.util.Map.Entry;
+
 import java.util.Objects;
 
 /**
@@ -63,11 +64,28 @@ public class ComparablePair<L, R> implements Entry<L, R>, Serializable, Comparab
   @Override
   @SuppressWarnings("unchecked")
   public int compareTo(ComparablePair<L, R> o) {
-    if (getLeft() instanceof Comparable && getRight() instanceof Comparable) {
-      int leftComparison = ((Comparable<L>) getLeft()).compareTo(o.getLeft());
-      return leftComparison == 0 ? ((Comparable<R>) getRight()).compareTo(o.getRight()) : leftComparison;
+    if (o == null) {
+      throw new IllegalArgumentException("Pair to compare to must not be null");
     }
-    throw new UnsupportedOperationException("Please provide comparable types");
+    try {
+      int leftComparison = compare((Comparable<L>) getLeft(), (Comparable<L>) o.getLeft());
+      return leftComparison == 0 ? compare((Comparable<R>) getRight(), (Comparable<R>) o.getRight()) : leftComparison;
+    } catch (ClassCastException cce) {
+      throw new IllegalArgumentException("Please provide comparable elements", cce);
+    }
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private int compare(Comparable original, Comparable other) {
+    if (original == null && other == null) {
+      return 0;
+    }
+
+    if (original == null ^ other == null) {
+      return (original == null) ? -1 : 1;
+    }
+
+    return original.compareTo(other);
   }
 
   @Override

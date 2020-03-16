@@ -26,6 +26,7 @@ import org.camunda.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.repository.ProcessDefinitionQuery;
 import org.camunda.bpm.engine.runtime.Job;
+import org.camunda.bpm.engine.runtime.JobQuery;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.test.RequiredHistoryLevel;
 import org.camunda.bpm.engine.test.api.AbstractAsyncOperationsTest;
@@ -47,7 +48,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -109,6 +112,45 @@ public class HistoryServiceAsyncOperationsTest extends AbstractAsyncOperationsTe
   }
 
   @Test
+  public void testDeleteHistoryProcessInstancesAsyncWithListForDelXetedDeployment() throws Exception {
+    // given a second deployment
+    prepareData();
+    ProcessDefinitionQuery definitionQuery = engineRule.getRepositoryService().createProcessDefinitionQuery();
+    String firstDeploymentId = definitionQuery.processDefinitionVersion(1).singleResult().getDeploymentId();
+    String secondDeploymentId = definitionQuery.processDefinitionVersion(2).singleResult().getDeploymentId();
+    engineRule.getRepositoryService().deleteDeployment(secondDeploymentId);
+
+    engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
+
+    // when
+    Batch batch = historyService.deleteHistoricProcessInstancesAsync(historicProcessInstances, TEST_REASON);
+    executeSeedJobs(batch, 2);
+    // then batch jobs with different deployment ids exist
+    JobQuery batchJobQuery = managementService.createJobQuery().jobDefinitionId(batch.getBatchJobDefinitionId());
+    List<Job> batchJobs = batchJobQuery.list();
+    assertThat(batchJobs.size(), is(2));
+    assertThat(batchJobs.get(0).getDeploymentId(), anyOf(is(firstDeploymentId), is(nullValue())));
+    assertThat(batchJobs.get(1).getDeploymentId(), anyOf(is(firstDeploymentId), is(nullValue())));
+    assertThat(batchJobs.get(0).getDeploymentId(), is(not(batchJobs.get(1).getDeploymentId())));
+    assertThat(historicProcessInstances.size(), is(4));
+    assertThat(getHistoricProcessInstanceCountByDeploymentId(firstDeploymentId), is(2L));
+
+    // when the batch jobs for the first deployment are executed
+    getJobIdsByDeployment(batchJobs, firstDeploymentId).forEach(managementService::executeJob);
+    // then the historic process instances related to the first deployment should be deleted
+    assertThat(getHistoricProcessInstanceCountByDeploymentId(firstDeploymentId), is(0L));
+    // and historic process instances related to the second deployment should not be deleted
+    assertThat(historyService.createHistoricProcessInstanceQuery().count(), is(2L));
+
+    // when the remaining batch jobs are executed
+    batchJobQuery.list().forEach(j -> managementService.executeJob(j.getId()));
+    // then
+    assertNoHistoryForTasks();
+    assertHistoricBatchExists(testRule);
+    assertAllHistoricProcessInstancesAreDeleted();
+  }
+
+  @Test
   public void testDeleteHistoryProcessInstancesAsyncWithListInDifferentDeployments() throws Exception {
     // given a second deployment
     prepareData();
@@ -127,9 +169,11 @@ public class HistoryServiceAsyncOperationsTest extends AbstractAsyncOperationsTe
     assertThat(batchJobs.get(0).getDeploymentId(), IsIn.isOneOf(firstDeploymentId, secondDeploymentId));
     assertThat(batchJobs.get(1).getDeploymentId(), IsIn.isOneOf(firstDeploymentId, secondDeploymentId));
     assertThat(batchJobs.get(0).getDeploymentId(), is(not(batchJobs.get(1).getDeploymentId())));
+    assertThat(historicProcessInstances.size(), is(4));
+    assertThat(getHistoricProcessInstanceCountByDeploymentId(firstDeploymentId), is(2L));
+    assertThat(getHistoricProcessInstanceCountByDeploymentId(secondDeploymentId), is(2L));
 
     // when the batch jobs for the first deployment are executed
-    assertThat(getHistoricProcessInstanceCountByDeploymentId(firstDeploymentId), is(2L));
     getJobIdsByDeployment(batchJobs, firstDeploymentId).forEach(managementService::executeJob);
     // then the historic process instances related to the first deployment should be deleted
     assertThat(getHistoricProcessInstanceCountByDeploymentId(firstDeploymentId), is(0L));
